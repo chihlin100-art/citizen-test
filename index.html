@@ -32,7 +32,7 @@
         <div class="control-panel">
             <label for="speed">官員語速調整 (Officer Speech Speed): <span id="speed-val">0.85</span>x</label>
             <input type="range" id="speed" class="speed-slider" min="0.5" max="1.2" step="0.05" value="0.85" oninput="updateSpeed(this.value)">
-            <div style="font-size: 11px; color: #94a3b8;">(提示：0.7-0.8 為體貼慢速 nudge，1.0 為一般美國人日常正常語速)</div>
+            <div style="font-size: 11px; color: #94a3b8;">(提示：0.7-0.8 為體貼慢速，1.0 為一般美國人日常正常語速)</div>
         </div>
 
         <button class="repeat-btn" onclick="speakQuestion(true)">
@@ -61,16 +61,19 @@
 <script>
     const rawQuizData = [
       {
+        id: 1,
         question: "What is the supreme law of the land?",
         keywords: ["constitution"],
         answer: "The Constitution"
       },
       {
+        id: 2,
         question: "Name one reason the colonists came to America.",
         keywords: ["freedom", "liberty", "religion", "opportunity"],
         answer: "Freedom / Political liberty / Religious freedom"
       },
       {
+        id: 3,
         question: "The U.S. House of Representatives has how many voting members?",
         keywords: ["435", "four hundred thirty-five"],
         answer: "435"
@@ -83,14 +86,24 @@
     let recognition;
     let isRecording = false;
     let currentSpeed = 0.85;
+    let lastQuestionIdOfPreviousRound = null; // 用來記錄上一局最後一題的祕密小本本
 
-    // 1. 最優先執行：一進網頁不講廢話，先把題目打散
     function shuffleQuestions() {
-        quizData = [...rawQuizData];
-        for (let i = quizData.length - 1; i > 0; i--) {
+        let shuffled = [...rawQuizData];
+        
+        // 執行標準洗牌
+        for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
+
+        // 核心邏輯：如果洗牌後的第一題，跟上一局的最後一題一模一樣，就強迫把它跟最後一題對調！
+        if (lastQuestionIdOfPreviousRound !== null && shuffled[0].id === lastQuestionIdOfPreviousRound) {
+            let lastIndex = shuffled.length - 1;
+            [shuffled[0], shuffled[lastIndex]] = [shuffled[lastIndex], shuffled[0]];
+        }
+
+        quizData = shuffled;
     }
 
     function updateSpeed(val) {
@@ -167,7 +180,6 @@
         progressText.innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
         questionText.innerText = currentQuestion.question;
         
-        // 延遲一點點說話，防止跟網頁載入衝突導致卡死
         setTimeout(() => {
             speakQuestion(false);
         }, 300);
@@ -216,6 +228,9 @@
     }
 
     function nextQuestion() {
+        // 在切換前，先偷偷記住這一題的 ID
+        lastQuestionIdOfPreviousRound = quizData[currentQuestionIndex].id;
+        
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
         else {
@@ -239,9 +254,8 @@
         startNewQuizSession();
     }
 
-    // 初始化先洗牌
+    // 第一次打開網頁的初始化
     shuffleQuestions();
-    // 網頁完全載入後再啟動第一題
     window.onload = function() {
         startNewQuizSession();
     };
