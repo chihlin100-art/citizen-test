@@ -59,7 +59,8 @@
 </div>
 
 <script>
-    const quizData = [
+    // 原始題庫
+    const rawQuizData = [
       {
         question: "What is the supreme law of the land?",
         keywords: ["constitution"],
@@ -77,11 +78,21 @@
       }
     ];
 
+    let quizData = [];
     let currentQuestionIndex = 0;
     let score = 0;
     let recognition;
     let isRecording = false;
     let currentSpeed = 0.85;
+
+    // 隨機洗牌演算法，把題目順序完全打亂
+    function shuffleQuestions() {
+        quizData = [...rawQuizData];
+        for (let i = quizData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+        }
+    }
 
     function updateSpeed(val) {
         currentSpeed = parseFloat(val);
@@ -211,7 +222,8 @@
         }
     }
 
-    function restartQuiz() {
+    function startNewQuizSession() {
+        shuffleQuestions(); // 開啟新局時，立刻把題目順序打亂
         currentQuestionIndex = 0;
         score = 0;
         document.getElementById("quiz-section").style.display = "block";
@@ -219,7 +231,12 @@
         loadQuestion();
     }
 
-    loadQuestion();
+    function restartQuiz() {
+        startNewQuizSession();
+    }
+
+    // 第一次進入網頁，立刻隨機抽題初始化
+    startNewQuizSession();
 </script>
 
 </body>
