@@ -48,7 +48,9 @@
         
         <div id="result-box" class="result-box"></div>
         
-        <button id="next-btn" class="action-btn" onclick="nextQuestion()">下一題 (Next)</button>
+        <div style="margin-top: 15px;">
+            <button id="next-btn" class="action-btn" onclick="nextQuestion()">下一題 (Next)</button>
+        </div>
     </div>
     
     <div id="final-section" style="display: none; color: #333;">
@@ -59,25 +61,39 @@
 </div>
 
 <script>
+    // 這裡幫你注入了全套完整的公民測驗題庫結構（展示核心題池，系統會自動在重開時隨機換題）
     const rawQuizData = [
-      {
-        id: 1,
-        question: "What is the supreme law of the land?",
-        keywords: ["constitution"],
-        answer: "The Constitution"
-      },
-      {
-        id: 2,
-        question: "Name one reason the colonists came to America.",
-        keywords: ["freedom", "liberty", "religion", "opportunity"],
-        answer: "Freedom / Political liberty / Religious freedom"
-      },
-      {
-        id: 3,
-        question: "The U.S. House of Representatives has how many voting members?",
-        keywords: ["435", "four hundred thirty-five"],
-        answer: "435"
-      }
+      { id: 1, question: "What is the supreme law of the land?", keywords: ["constitution"], answer: "The Constitution" },
+      { id: 2, question: "What does the Constitution do?", keywords: ["sets up", "defines", "protects"], answer: "sets up the government / defines the government / protects basic rights of Americans" },
+      { id: 3, question: "The idea of self-government is in the first three words of the Constitution. What are these words?", keywords: ["we the people"], answer: "We the People" },
+      { id: 4, question: "What is an amendment?", keywords: ["change", "addition"], answer: "a change (to the Constitution) / an addition (to the Constitution)" },
+      { id: 5, question: "What do we call the first ten amendments to the Constitution?", keywords: ["bill of rights"], answer: "the Bill of Rights" },
+      { id: 6, question: "What is one right or freedom from the First Amendment?", keywords: ["speech", "religion", "assembly", "press", "petition"], answer: "Speech / Religion / Assembly / Press / Petition the government" },
+      { id: 7, question: "How many amendments does the Constitution have?", keywords: ["27", "twenty-seven"], answer: "27" },
+      { id: 8, question: "What did the Declaration of Independence do?", keywords: ["announced", "declared", "said"], answer: "announced our independence (from Great Britain) / declared our independence / said that the United States is free" },
+      { id: 9, question: "What are two rights in the Declaration of Independence?", keywords: ["life", "liberty", "pursuit of happiness"], answer: "Life / Liberty / Pursuit of happiness" },
+      { id: 10, question: "What is freedom of religion?", keywords: ["any religion", "not practice"], answer: "You can practice any religion, or not practice a religion." },
+      { id: 11, question: "What is the economic system in the United States?", keywords: ["capitalist", "market"], answer: "capitalist economy / market economy" },
+      { id: 12, question: "What is the rule of law?", keywords: ["everyone must follow", "no one is above"], answer: "Everyone must follow the law / Leaders must obey the law / Government must obey the law / No one is above the law" },
+      { id: 13, question: "Name one branch or part of the government.", keywords: ["congress", "legislative", "president", "executive", "courts", "judicial"], answer: "Congress / Legislative / President / Executive / The courts / Judicial" },
+      { id: 14, question: "What stops one branch of government from becoming too powerful?", keywords: ["checks and balances", "separation of powers"], answer: "checks and balances / separation of powers" },
+      { id: 15, question: "Who is in charge of the executive branch?", keywords: ["president"], answer: "the President" },
+      { id: 16, question: "Who makes federal laws?", keywords: ["congress", "senate and house", "legislature"], answer: "Congress / Senate and House (of Representatives) / (U.S. or national) legislature" },
+      { id: 17, question: "What are the two parts of the U.S. Congress?", keywords: ["senate", "house"], answer: "the Senate and House (of Representatives)" },
+      { id: 18, question: "How many U.S. Senators are there?", keywords: ["100", "one hundred"], answer: "100" },
+      { id: 19, question: "We elect a U.S. Senator for how many years?", keywords: ["6", "six"], answer: "6" },
+      { id: 20, question: "The U.S. House of Representatives has how many voting members?", keywords: ["435", "four hundred thirty-five"], answer: "435" },
+      { id: 21, question: "We elect a U.S. Representative for how many years?", keywords: ["2", "two"], answer: "2" },
+      { id: 22, question: "Who does a U.S. Senator represent?", keywords: ["all people of the state"], answer: "all people of the state" },
+      { id: 23, question: "Why do some states have more Representatives than other states?", keywords: ["population", "more people"], answer: "(because of) the state's population / (because) they have more people / (because) some states have more people" },
+      { id: 24, question: "We elect a President for how many years?", keywords: ["4", "four"], answer: "4" },
+      { id: 25, question: "In what month do we vote for President?", keywords: ["november"], answer: "November" },
+      { id: 26, question: "What is the name of the President of the United States now?", keywords: ["biden", "joe biden"], answer: "Joe Biden" },
+      { id: 27, question: "What is the name of the Vice President of the United States now?", keywords: ["harris", "kamala harris"], answer: "Kamala Harris" },
+      { id: 28, question: "If the President can no longer serve, who becomes President?", keywords: ["vice president"], answer: "the Vice President" },
+      { id: 29, question: "If both the President and the Vice President can no longer serve, who becomes President?", keywords: ["speaker of the house"], answer: "the Speaker of the House" },
+      { id: 30, question: "Name one reason the colonists came to America.", keywords: ["freedom", "liberty", "religion", "opportunity"], answer: "Freedom / Political liberty / Religious freedom" }
+      // 此處可依此結構自由擴充至 128 題
     ];
 
     let quizData = [];
@@ -86,24 +102,27 @@
     let recognition;
     let isRecording = false;
     let currentSpeed = 0.85;
-    let lastQuestionIdOfPreviousRound = null; // 用來記錄上一局最後一題的祕密小本本
+    let lastRoundFinalQuestionId = null; // 用來記憶跨局最後一題的變數
 
-    function shuffleQuestions() {
-        let shuffled = [...rawQuizData];
-        
-        // 執行標準洗牌
-        for (let i = shuffled.length - 1; i > 0; i--) {
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function generateSmartQuiz() {
+        let pool = [...rawQuizData];
+        shuffleArray(pool);
+
+        // 核心機密：如果重開後隨機抽的第一題與上一局的最後一題相同，則強制將其與倒數第一題對調，徹底消除重合
+        if (lastRoundFinalQuestionId !== null && pool[0].id === lastRoundFinalQuestionId) {
+            [pool[0], pool[pool.length - 1]] = [pool[pool.length - 1], pool[0]];
         }
 
-        // 核心邏輯：如果洗牌後的第一題，跟上一局的最後一題一模一樣，就強迫把它跟最後一題對調！
-        if (lastQuestionIdOfPreviousRound !== null && shuffled[0].id === lastQuestionIdOfPreviousRound) {
-            let lastIndex = shuffled.length - 1;
-            [shuffled[0], shuffled[lastIndex]] = [shuffled[lastIndex], shuffled[0]];
-        }
-
-        quizData = shuffled;
+        // 每次考驗隨機抽出 6 題（現場移民官也是抽問達 10 題，答對 6 題即過關）
+        quizData = pool.slice(0, 6);
     }
 
     function updateSpeed(val) {
@@ -172,6 +191,15 @@
     const nextBtn = document.getElementById("next-btn");
     const progressText = document.getElementById("progress");
 
+    function startNewQuizSession() {
+        generateSmartQuiz(); 
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById("quiz-section").style.display = "block";
+        document.getElementById("final-section").style.display = "none";
+        loadQuestion();
+    }
+
     function loadQuestion() {
         resultBox.style.display = "none"; nextBtn.style.display = "none";
         userSpeechText.innerText = ""; document.getElementById("similarity-score").innerText = "";
@@ -228,8 +256,8 @@
     }
 
     function nextQuestion() {
-        // 在切換前，先偷偷記住這一題的 ID
-        lastQuestionIdOfPreviousRound = quizData[currentQuestionIndex].id;
+        // 在切換至下一題前，確實將當前題目儲存至跨局變數中
+        lastRoundFinalQuestionId = quizData[currentQuestionIndex].id;
         
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
@@ -241,21 +269,10 @@
         }
     }
 
-    function startNewQuizSession() {
-        shuffleQuestions(); 
-        currentQuestionIndex = 0;
-        score = 0;
-        document.getElementById("quiz-section").style.display = "block";
-        document.getElementById("final-section").style.display = "none";
-        loadQuestion();
-    }
-
     function restartQuiz() {
         startNewQuizSession();
     }
 
-    // 第一次打開網頁的初始化
-    shuffleQuestions();
     window.onload = function() {
         startNewQuizSession();
     };
