@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美國公民「全真考場模擬」口試系統</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 550px; max-width: 90%; text-align: center; }
+        h2 { font-size: 22px; color: #1e3a8a; margin-bottom: 25px; line-height: 1.4; }
+        .control-panel { background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 14px; color: #475569; }
+        .control-panel label { font-weight: bold; display: block; margin-bottom: 5px; }
+        .speed-slider { width: 100%; margin-bottom: 5px; }
+        .repeat-btn { background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
+        .repeat-btn:hover { background-color: #2563eb; }
+        .mic-btn { background-color: #ef4444; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-size: 18px; cursor: pointer; font-weight: bold; margin: 15px 0; box-shadow: 0 4px 10px rgba(239,68,68,0.4); transition: all 0.2s; }
+        .mic-btn.recording { background-color: #22c55e; box-shadow: 0 4px 10px rgba(34,197,94,0.4); }
+        .result-box { padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; font-weight: bold; display: none; }
+        .success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .action-btn { background-color: #1e293b; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-section">
+        <div id="progress" style="font-size: 14px; color: #64748b; text-align: left; margin-bottom: 10px;"></div>
+        
+        <div class="control-panel">
+            <label for="speed">官員語速調整 (Officer Speech Speed): <span id="speed-val">0.85</span>x</label>
+            <input type="range" id="speed" class="speed-slider" min="0.5" max="1.2" step="0.05" value="0.85" oninput="updateSpeed(this.value)">
+            <div style="font-size: 11px; color: #94a3b8;">(提示：0.7-0.8 為體貼慢速，1.0 為一般美國人日常正常語速)</div>
+        </div>
+
+        <button class="repeat-btn" onclick="speakQuestion(true)">
+            🙋‍♂️ 沒聽清？請官員再唸一次 (Can you please repeat that?)
+        </button>
+        
+        <h2 id="question-text">題目載入中...</h2>
+        
+        <button id="mic-btn" class="mic-btn" onclick="toggleListening()">🎤 按一下開始回答 (Speak Now)</button>
+        
+        <div id="user-speech" style="font-style: italic; color: #475569; margin: 10px 0; min-height: 24px;"></div>
+        <div id="similarity-score" style="font-size: 13px; color: #64748b; margin-bottom: 10px;"></div>
+        
+        <div id="result-box" class="result-box"></div>
+        
+        <button id="next-btn" class="action-btn" onclick="nextQuestion()">下一題 (Next)</button>
+    </div>
+    
+    <div id="final-section" style="display: none; color: #333;">
+        <h2>測驗結束！</h2>
+        <p style="font-size: 18px;">順利通過題數：<span id="final-score" style="color: #22c55e; font-weight: bold;">0</span> / <span id="total-questions">0</span></p>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+      {
+        question: "What is the supreme law of the land?",
+        keywords: ["constitution"],
+        answer: "The Constitution"
+      },
+      {
+        question: "Name one reason the colonists came to America.",
+        keywords: ["freedom", "liberty", "religion", "opportunity"],
+        answer: "Freedom / Political liberty / Religious freedom"
+      },
+      {
+        question: "The U.S. House of Representatives has how many voting members?",
+        keywords: ["435", "four hundred thirty-five"],
+        answer: "435"
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let recognition;
+    let isRecording = false;
+    let currentSpeed = 0.85;
+
+    function updateSpeed(val) {
+        currentSpeed = parseFloat(val);
+        document.getElementById("speed-val").innerText = val;
+    }
+
+    function similarity(s1, s2) {
+        let longer = s1; let shorter = s2;
+        if (s1.length < s2.length) { longer = s2; shorter = s1; }
+        let longerLength = longer.length;
+        if (longerLength === 0) { return 1.0; }
+        return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    }
+
+    function editDistance(s1, s2) {
+        s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+        let costs = new Array();
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i == 0) costs[j] = j;
+                else {
+                    if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0) costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+
+        recognition.onstart = function() {
+            isRecording = true;
+            micBtn.innerText = "🛑 官員正在聽... (Listening)";
+            micBtn.classList.add("recording");
+            userSpeechText.innerText = "請開口回答...";
+            resultBox.style.display = "none";
+        };
+
+        recognition.onerror = function() { resetMicButton(); };
+        recognition.onend = function() { resetMicButton(); };
+
+        recognition.onresult = function(event) {
+            const userSpeech = event.results[0][0].transcript.toLowerCase();
+            userSpeechText.innerHTML = `你回答的是：<strong>"${userSpeech}"</strong>`;
+            checkAnswerWithTolerance(userSpeech);
+        };
+    }
+
+    const questionText = document.getElementById("question-text");
+    const micBtn = document.getElementById("mic-btn");
+    const userSpeechText = document.getElementById("user-speech");
+    const resultBox = document.getElementById("result-box");
+    const nextBtn = document.getElementById("next-btn");
+    const progressText = document.getElementById("progress");
+
+    function loadQuestion() {
+        resultBox.style.display = "none"; nextBtn.style.display = "none";
+        userSpeechText.innerText = ""; document.getElementById("similarity-score").innerText = "";
+        let currentQuestion = quizData[currentQuestionIndex];
+        progressText.innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
+        questionText.innerText = currentQuestion.question;
+        speakQuestion(false);
+    }
+
+    function speakQuestion(isUserRequested = false) {
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
+        utterance.lang = 'en-US';
+        utterance.rate = currentSpeed;
+        window.speechSynthesis.speak(utterance);
+
+        if (isUserRequested) {
+            userSpeechText.innerHTML = "<span style='color: #2563eb;'>💡 實戰提醒：在現場聽不清時，隨時可以禮貌地對移民官說：'Sorry, could you repeat the question, please?'</span>";
+        }
+    }
+
+    function toggleListening() { if (isRecording) { recognition.stop(); } else { recognition.start(); } }
+    function resetMicButton() { isRecording = false; micBtn.innerText = "🎤 按一下開始回答 (Speak Now)"; micBtn.classList.remove("recording"); }
+
+    function checkAnswerWithTolerance(speech) {
+        let currentQuestion = quizData[currentQuestionIndex];
+        let speechWords = speech.split(" ");
+        let maxSimilarity = 0;
+
+        for (let word of speechWords) {
+            for (let keyword of currentQuestion.keywords) {
+                let sim = similarity(word, keyword);
+                if (sim > maxSimilarity) { maxSimilarity = sim; }
+            }
+        }
+
+        let isCorrect = maxSimilarity >= 0.70;
+        resultBox.style.display = "block";
+        document.getElementById("similarity-score").innerText = `(語音匹配度: ${Math.round(maxSimilarity * 100)}%)`;
+
+        if (isCorrect) {
+            resultBox.className = "result-box success";
+            resultBox.innerHTML = `⭕ 官員聽懂了！正確。<br>標準答案：${currentQuestion.answer}`;
+            score++;
+        } else {
+            resultBox.className = "result-box error";
+            resultBox.innerHTML = `❌ 官員露出困惑表情。你可以再聽一次或查看答案。<br>標準答案應包含：${currentQuestion.answer}`;
+        }
+        nextBtn.style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
+        else {
+            document.getElementById("quiz-section").style.display = "none";
+            document.getElementById("final-section").style.display = "block";
+            document.getElementById("final-score").innerText = score;
+            document.getElementById("total-questions").innerText = quizData.length;
+        }
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
