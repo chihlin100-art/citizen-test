@@ -32,7 +32,7 @@
         <div class="control-panel">
             <label for="speed">官員語速調整 (Officer Speech Speed): <span id="speed-val">0.85</span>x</label>
             <input type="range" id="speed" class="speed-slider" min="0.5" max="1.2" step="0.05" value="0.85" oninput="updateSpeed(this.value)">
-            <div style="font-size: 11px; color: #94a3b8;">(提示：0.7-0.8 為體貼慢速，1.0 為一般美國人日常正常語速)</div>
+            <div style="font-size: 11px; color: #94a3b8;">(提示：0.7-0.8 為體貼慢速 nudge，1.0 為一般美國人日常正常語速)</div>
         </div>
 
         <button class="repeat-btn" onclick="speakQuestion(true)">
@@ -59,7 +59,6 @@
 </div>
 
 <script>
-    // 原始題庫
     const rawQuizData = [
       {
         question: "What is the supreme law of the land?",
@@ -85,7 +84,7 @@
     let isRecording = false;
     let currentSpeed = 0.85;
 
-    // 隨機洗牌演算法，把題目順序完全打亂
+    // 1. 最優先執行：一進網頁不講廢話，先把題目打散
     function shuffleQuestions() {
         quizData = [...rawQuizData];
         for (let i = quizData.length - 1; i > 0; i--) {
@@ -163,10 +162,15 @@
     function loadQuestion() {
         resultBox.style.display = "none"; nextBtn.style.display = "none";
         userSpeechText.innerText = ""; document.getElementById("similarity-score").innerText = "";
+        
         let currentQuestion = quizData[currentQuestionIndex];
         progressText.innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
         questionText.innerText = currentQuestion.question;
-        speakQuestion(false);
+        
+        // 延遲一點點說話，防止跟網頁載入衝突導致卡死
+        setTimeout(() => {
+            speakQuestion(false);
+        }, 300);
     }
 
     function speakQuestion(isUserRequested = false) {
@@ -223,7 +227,7 @@
     }
 
     function startNewQuizSession() {
-        shuffleQuestions(); // 開啟新局時，立刻把題目順序打亂
+        shuffleQuestions(); 
         currentQuestionIndex = 0;
         score = 0;
         document.getElementById("quiz-section").style.display = "block";
@@ -235,8 +239,12 @@
         startNewQuizSession();
     }
 
-    // 第一次進入網頁，立刻隨機抽題初始化
-    startNewQuizSession();
+    // 初始化先洗牌
+    shuffleQuestions();
+    // 網頁完全載入後再啟動第一題
+    window.onload = function() {
+        startNewQuizSession();
+    };
 </script>
 
 </body>
