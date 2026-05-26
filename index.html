@@ -56,34 +56,34 @@
 
 <div class="quiz-container">
     
-    <div id="setup-section" class="setup-panel" style="display: block;">
+    <div id="setup-section" class="setup-panel" style="display: block !important;">
         <h3>選擇你的指定面試官 (Select Your Interviewer)</h3>
         
         <div class="officer-grid">
             <div class="officer-card selected" onclick="selectOfficer('white-female', this)">
                 <div class="avatar-container">
-                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer1.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150'" alt="Officer Emily">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Emily">
                 </div>
                 <div class="officer-name">Officer Emily</div>
                 <div class="officer-accent">白人女性<br>(美式標準音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('black-male', this)">
                 <div class="avatar-container">
-                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer2.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'" alt="Officer Marcus">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Marcus">
                 </div>
                 <div class="officer-name">Officer Marcus</div>
                 <div class="officer-accent">黑人男性<br>(Cary現場官員音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('indian-female', this)">
                 <div class="avatar-container">
-                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer3.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150'" alt="Officer Sofia">
+                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Sofia">
                 </div>
                 <div class="officer-name">Officer Sofia</div>
                 <div class="officer-accent">印度裔女性<br>(Apex新移民音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('latino-male', this)">
                 <div class="avatar-container">
-                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer4.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'" alt="Officer Diego">
+                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Diego">
                 </div>
                 <div class="officer-name">Officer Diego</div>
                 <div class="officer-accent">南美洲男性<br>(西語平舌音)</div>
@@ -117,7 +117,7 @@
         <button class="start-exam-btn" onclick="confirmSetupAndStart()">確認資料，開始模擬面試 🚀</button>
     </div>
 
-    <div id="quiz-section" style="display: none;">
+    <div id="quiz-section" style="display: none !important;">
         <div id="progress" style="font-size: 14px; color: #64748b; text-align: left; margin-bottom: 10px;"></div>
         
         <div class="control-panel">
@@ -152,7 +152,6 @@
 </div>
 
 <script>
-    // 核心題庫
     const rawQuizData = [
       { id: 1, question: "What is the supreme law of the land?", keywords: ["constitution"], answer: "The Constitution" },
       { id: 2, question: "What does the Constitution do?", keywords: ["sets up", "defines", "protects"], answer: "sets up the government / defines the government / protects basic rights of Americans" },
@@ -213,7 +212,7 @@
         }
     }
 
-    // 關鍵修正：點擊按鈕後才執行切換，且隱藏第一頁，顯示第二頁
+    // 關鍵修正：點擊按鈕後，利用 setAttribute 強制解除 !important 限制並做正確的切換
     function confirmSetupAndStart() {
         rawQuizData.forEach(q => {
             if (q.isDynamic === "president") { q.answer = dynamicPresident; q.keywords = dynamicPresident.toLowerCase().split(" "); }
@@ -222,10 +221,11 @@
         });
 
         document.getElementById("current-officer-display").innerText = `當前執考官：${officerMeta[selectedOfficerType].name}`;
-        document.getElementById("setup-section").style.display = "none";
-        document.getElementById("quiz-section").style.display = "block";
         
-        // 切換完成後才正式加載題目
+        // 暴力覆蓋樣式解除鎖定
+        document.getElementById("setup-section").setAttribute("style", "display: none !important;");
+        document.getElementById("quiz-section").setAttribute("style", "display: block !important;");
+        
         startNewQuizSession();
     }
 
@@ -254,7 +254,6 @@
     function speakQuestion(isUserRequested = false) {
         window.speechSynthesis.cancel();
         let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
-        
         const config = officerMeta[selectedOfficerType];
         utterance.lang = config.lang;
         
@@ -379,27 +378,27 @@
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
         else {
-            document.getElementById("quiz-section").style.display = "none";
-            document.getElementById("final-section").style.display = "block";
+            document.getElementById("quiz-section").setAttribute("style", "display: none !important;");
+            document.getElementById("final-section").setAttribute("style", "display: block !important;");
             document.getElementById("final-score").innerText = score;
             document.getElementById("total-questions").innerText = quizData.length;
         }
     }
 
     function restartQuiz() {
-        document.getElementById("setup-section").style.display = "block";
-        document.getElementById("quiz-section").style.display = "none";
-        document.getElementById("final-section").style.display = "none";
+        document.getElementById("setup-section").setAttribute("style", "display: block !important;");
+        document.getElementById("quiz-section").setAttribute("style", "display: none !important;");
+        document.getElementById("final-section").setAttribute("style", "display: none !important;");
     }
 
-    // 核心安全防禦：網頁載入時強制清空並設定正確的顯隱狀態，防堵任何程式碼越位
+    // 終極安全防禦：網頁只要一載入，強制用 JavaScript 重新下達兩邊的顯示與隱藏命令
     window.onload = function() {
         autoDetectPresidentialData();
         
-        // 強制初始畫面設定
-        document.getElementById("setup-section").style.display = "block";
-        document.getElementById("quiz-section").style.display = "none";
-        document.getElementById("final-section").style.display = "none";
+        // 網頁啟動的終極防線：手動重置所有區塊的顯隱狀態
+        document.getElementById("setup-section").setAttribute("style", "display: block !important;");
+        document.getElementById("quiz-section").setAttribute("style", "display: none !important;");
+        document.getElementById("final-section").setAttribute("style", "display: none !important;");
 
         if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
             speechSynthesis.onvoiceschanged = () => {}; 
