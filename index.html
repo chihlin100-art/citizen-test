@@ -9,18 +9,18 @@
         .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 680px; max-width: 100%; text-align: center; }
         h2 { font-size: 22px; color: #1e3a8a; margin-bottom: 25px; line-height: 1.4; }
         
-        /* 初始設定面板 */
+        /* 初始面板設定 */
         .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; }
         .setup-panel h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; font-size: 18px; text-align: center; }
         
-        /* 精簡通訊地址佈局（5 格） */
+        /* 通訊地址佈局（5 格） */
         .address-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full-width { grid-column: span 2; }
         .form-group label { font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #334155; }
         .form-group input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; background-color: #fff; color: #1e293b; }
         
-        /* 四大真人面試官卡片 */
+        /* 四大面試官卡片 */
         .officer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .officer-card { border: 2px solid #cbd5e1; border-radius: 10px; overflow: hidden; text-align: center; cursor: pointer; transition: all 0.2s; background: white; padding-bottom: 10px; box-sizing: border-box; }
         .officer-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
@@ -220,6 +220,7 @@
 
         document.getElementById("current-officer-display").innerText = `當前執考官：${officerMeta[selectedOfficerType].name}`;
         
+        // 核心修正：強制隱藏設定頁，並絕對亮起測驗頁
         document.getElementById("setup-section").style.display = "none";
         document.getElementById("quiz-section").style.display = "block";
         
@@ -336,9 +337,14 @@
     }
 
     function loadQuestion() {
+        // 核心修正：先把所有舊畫面元件、下一題按鈕、結果框全部「強制隱藏/重設」，絕不留存殘留物
+        resultBox.style.display = "none"; 
+        nextBtn.style.display = "none";
+        userSpeechText.innerText = ""; 
+        document.getElementById("similarity-score").innerText = "";
+        
         if (!quizData || quizData.length === 0) return;
-        resultBox.style.display = "none"; nextBtn.style.display = "none";
-        userSpeechText.innerText = ""; document.getElementById("similarity-score").innerText = "";
+        
         let currentQuestion = quizData[currentQuestionIndex];
         progressText.innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
         questionText.innerText = currentQuestion.question;
@@ -390,10 +396,10 @@
         document.getElementById("final-section").style.display = "none";
     }
 
+    // 萬無一失的啟動死鎖機制：進站時除了第一頁，其餘任何殘留物一律永久抹除
     window.onload = function() {
         autoDetectPresidentialData();
         
-        // 初始狀態絕對死死限制在第一頁
         document.getElementById("setup-section").style.display = "block";
         document.getElementById("quiz-section").style.display = "none";
         document.getElementById("final-section").style.display = "none";
