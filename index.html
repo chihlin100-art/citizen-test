@@ -9,24 +9,23 @@
         .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 680px; max-width: 100%; text-align: center; }
         h2 { font-size: 22px; color: #1e3a8a; margin-bottom: 25px; line-height: 1.4; }
         
-        /* 初始設定區：確保優先呈現 */
+        /* 初始設定面板 */
         .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; }
         .setup-panel h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; font-size: 18px; text-align: center; }
         
-        /* 精簡通訊地址佈局（5 格） */
+        /* 精簡通訊地址（5 格） */
         .address-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full-width { grid-column: span 2; }
         .form-group label { font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #334155; }
         .form-group input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; background-color: #fff; color: #1e293b; }
         
-        /* 四大真人考官卡片選單 */
+        /* 四大面試官卡片 */
         .officer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .officer-card { border: 2px solid #cbd5e1; border-radius: 10px; overflow: hidden; text-align: center; cursor: pointer; transition: all 0.2s; background: white; padding-bottom: 10px; box-sizing: border-box; }
         .officer-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
         .officer-card.selected { border-color: #22c55e; background-color: #f0fdf4; box-shadow: 0 0 12px rgba(34,197,94,0.4); }
         
-        /* 頭像容器 */
         .avatar-container { width: 110px; height: 110px; margin: 12px auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #e2e8f0; background-color: #f1f5f9; }
         .officer-img { width: 100%; height: 100%; object-fit: cover; }
         .officer-name { font-size: 14px; font-weight: bold; color: #1e293b; margin-top: 4px; }
@@ -56,7 +55,7 @@
 
 <div class="quiz-container">
     
-    <div id="setup-section" class="setup-panel" style="display: block !important;">
+    <div id="setup-section" class="setup-panel" style="display: block;">
         <h3>選擇你的指定面試官 (Select Your Interviewer)</h3>
         
         <div class="officer-grid">
@@ -117,7 +116,7 @@
         <button class="start-exam-btn" onclick="confirmSetupAndStart()">確認資料，開始模擬面試 🚀</button>
     </div>
 
-    <div id="quiz-section" style="display: none !important;">
+    <div id="quiz-section" style="display: none;">
         <div id="progress" style="font-size: 14px; color: #64748b; text-align: left; margin-bottom: 10px;"></div>
         
         <div class="control-panel">
@@ -212,7 +211,6 @@
         }
     }
 
-    // 關鍵修正：點擊按鈕後，利用 setAttribute 強制解除 !important 限制並做正確的切換
     function confirmSetupAndStart() {
         rawQuizData.forEach(q => {
             if (q.isDynamic === "president") { q.answer = dynamicPresident; q.keywords = dynamicPresident.toLowerCase().split(" "); }
@@ -222,9 +220,8 @@
 
         document.getElementById("current-officer-display").innerText = `當前執考官：${officerMeta[selectedOfficerType].name}`;
         
-        // 暴力覆蓋樣式解除鎖定
-        document.getElementById("setup-section").setAttribute("style", "display: none !important;");
-        document.getElementById("quiz-section").setAttribute("style", "display: block !important;");
+        document.getElementById("setup-section").style.display = "none";
+        document.getElementById("quiz-section").style.display = "block";
         
         startNewQuizSession();
     }
@@ -252,6 +249,7 @@
     }
 
     function speakQuestion(isUserRequested = false) {
+        if (!quizData || quizData.length === 0) return; // 安全防線
         window.speechSynthesis.cancel();
         let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
         const config = officerMeta[selectedOfficerType];
@@ -338,6 +336,7 @@
     }
 
     function loadQuestion() {
+        if (!quizData || quizData.length === 0) return;
         resultBox.style.display = "none"; nextBtn.style.display = "none";
         userSpeechText.innerText = ""; document.getElementById("similarity-score").innerText = "";
         let currentQuestion = quizData[currentQuestionIndex];
@@ -378,27 +377,27 @@
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
         else {
-            document.getElementById("quiz-section").setAttribute("style", "display: none !important;");
-            document.getElementById("final-section").setAttribute("style", "display: block !important;");
+            document.getElementById("quiz-section").style.display = "none";
+            document.getElementById("final-section").style.display = "block";
             document.getElementById("final-score").innerText = score;
             document.getElementById("total-questions").innerText = quizData.length;
         }
     }
 
     function restartQuiz() {
-        document.getElementById("setup-section").setAttribute("style", "display: block !important;");
-        document.getElementById("quiz-section").setAttribute("style", "display: none !important;");
-        document.getElementById("final-section").setAttribute("style", "display: none !important;");
+        document.getElementById("setup-section").style.display = "block";
+        document.getElementById("quiz-section").style.display = "none";
+        document.getElementById("final-section").style.display = "none";
     }
 
-    // 終極安全防禦：網頁只要一載入，強制用 JavaScript 重新下達兩邊的顯示與隱藏命令
+    // 實測過關的唯一安全載入機制
     window.onload = function() {
         autoDetectPresidentialData();
         
-        // 網頁啟動的終極防線：手動重置所有區塊的顯隱狀態
-        document.getElementById("setup-section").setAttribute("style", "display: block !important;");
-        document.getElementById("quiz-section").setAttribute("style", "display: none !important;");
-        document.getElementById("final-section").setAttribute("style", "display: none !important;");
+        // 核心修正：一進網站，絕對、強制只將第一頁的介面亮起，其餘死鎖
+        document.getElementById("setup-section").style.display = "block";
+        document.getElementById("quiz-section").style.display = "none";
+        document.getElementById("final-section").style.display = "none";
 
         if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
             speechSynthesis.onvoiceschanged = () => {}; 
