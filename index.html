@@ -9,18 +9,15 @@
         .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 680px; max-width: 100%; text-align: center; }
         h2 { font-size: 22px; color: #1e3a8a; margin-bottom: 25px; line-height: 1.4; }
         
-        /* 初始面板設定 */
-        .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; }
+        .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; display: block; }
         .setup-panel h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; font-size: 18px; text-align: center; }
         
-        /* 通訊地址佈局（5 格） */
         .address-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full-width { grid-column: span 2; }
         .form-group label { font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #334155; }
         .form-group input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; background-color: #fff; color: #1e293b; }
         
-        /* 四大面試官卡片 */
         .officer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .officer-card { border: 2px solid #cbd5e1; border-radius: 10px; overflow: hidden; text-align: center; cursor: pointer; transition: all 0.2s; background: white; padding-bottom: 10px; box-sizing: border-box; }
         .officer-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
@@ -55,7 +52,7 @@
 
 <div class="quiz-container">
     
-    <div id="setup-section" class="setup-panel" style="display: block;">
+    <div id="setup-section" class="setup-panel">
         <h3>選擇你的指定面試官 (Select Your Interviewer)</h3>
         
         <div class="officer-grid">
@@ -157,18 +154,7 @@
       { id: 3, question: "The idea of self-government is in the first three words of the Constitution. What are these words?", keywords: ["we the people"], answer: "We the People" },
       { id: 4, question: "What is an amendment?", keywords: ["change", "addition"], answer: "a change (to the Constitution) / an addition (to the Constitution)" },
       { id: 5, question: "What do we call the first ten amendments to the Constitution?", keywords: ["bill of rights"], answer: "the Bill of Rights" },
-      { id: 6, question: "What is one right or freedom from the First Amendment?", keywords: ["speech", "religion", "assembly", "press", "petition"], answer: "Speech / Religion / Assembly / Press / Petition the government" },
-      { id: 7, question: "How many amendments does the Constitution have?", keywords: ["27", "twenty-seven"], answer: "27" },
-      { id: 8, question: "What did the Declaration of Independence do?", keywords: ["announced", "declared", "said"], answer: "announced our independence (from Great Britain) / declared our independence / said that the United States is free" },
-      { id: 9, question: "What are two rights in the Declaration of Independence?", keywords: ["life", "liberty", "pursuit of happiness"], answer: "Life / Liberty / Pursuit of happiness" },
-      { id: 10, question: "What is freedom of religion?", keywords: ["any religion", "not practice"], answer: "You can practice any religion, or not practice a religion." },
-      
-      { id: 46, isDynamic: "party", question: "What is the political party of the President now?", keywords: [], answer: "" },
-      { id: 47, isDynamic: "president", question: "What is the name of the President of the United States now?", keywords: [], answer: "" },
-      { id: 48, isDynamic: "vp", question: "What is the name of the Vice President of the United States now?", keywords: [], answer: "" },
-
-      { id: 11, question: "What is the economic system in the United States?", keywords: ["capitalist", "market"], answer: "capitalist economy / market economy" },
-      { id: 12, question: "What is the rule of law?", keywords: ["everyone must follow", "no one is above"], answer: "Everyone must follow the law / Leaders must obey the law / Government must obey the law / No one is above the law" }
+      { id: 11, question: "What is the economic system in the United States?", keywords: ["capitalist", "market"], answer: "capitalist economy / market economy" }
     ];
 
     let quizData = [];
@@ -177,7 +163,6 @@
     let recognition;
     let isRecording = false;
     let currentSpeed = 0.85;
-    let lastRoundFinalQuestionId = null;
 
     let selectedOfficerType = 'white-female';
     const officerMeta = {
@@ -187,199 +172,76 @@
         'latino-male': { name: "Officer Diego (南美洲男性)", lang: "en-ZA", nameHint: "Sabina" }
     };
 
-    let dynamicPresident = "Donald Trump";
-    let dynamicVP = "JD Vance";
-    let dynamicParty = "Republican Party";
-
     function selectOfficer(type, element) {
         selectedOfficerType = type;
         document.querySelectorAll('.officer-card').forEach(card => card.classList.remove('selected'));
         element.classList.add('selected');
     }
 
-    function autoDetectPresidentialData() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-        const day = now.getDate();
-        let isTrumpEra = (year > 2025) || (year === 2025 && (month > 1 || (month === 1 && day >= 20)));
-
-        if (isTrumpEra) {
-            dynamicPresident = "Donald Trump"; dynamicVP = "JD Vance"; dynamicParty = "Republican Party";
-        } else {
-            dynamicPresident = "Joe Biden"; dynamicVP = "Kamala Harris"; dynamicParty = "Democratic Party";
-        }
-    }
-
     function confirmSetupAndStart() {
-        rawQuizData.forEach(q => {
-            if (q.isDynamic === "president") { q.answer = dynamicPresident; q.keywords = dynamicPresident.toLowerCase().split(" "); }
-            else if (q.isDynamic === "vp") { q.answer = dynamicVP; q.keywords = dynamicVP.toLowerCase().split(" "); }
-            else if (q.isDynamic === "party") { q.answer = dynamicParty; q.keywords = dynamicParty.toLowerCase().split(" "); }
-        });
-
         document.getElementById("current-officer-display").innerText = `當前執考官：${officerMeta[selectedOfficerType].name}`;
-        
-        // 核心修正：強制隱藏設定頁，並絕對亮起測驗頁
         document.getElementById("setup-section").style.display = "none";
         document.getElementById("quiz-section").style.display = "block";
-        
         startNewQuizSession();
     }
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
-    function generateSmartQuiz() {
-        let pool = [...rawQuizData];
-        shuffleArray(pool);
-        if (lastRoundFinalQuestionId !== null && pool[0].id === lastRoundFinalQuestionId) {
-            [pool[0], pool[pool.length - 1]] = [pool[pool.length - 1], pool[0]];
-        }
-        quizData = pool.slice(0, 6);
-    }
-
-    function updateSpeed(val) {
-        currentSpeed = parseFloat(val);
-        document.getElementById("speed-val").innerText = val;
-    }
-
-    function speakQuestion(isUserRequested = false) {
-        if (!quizData || quizData.length === 0) return;
-        window.speechSynthesis.cancel();
-        let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
-        const config = officerMeta[selectedOfficerType];
-        utterance.lang = config.lang;
-        
-        let voices = window.speechSynthesis.getVoices();
-        let matchedVoice = voices.find(v => v.lang.includes(config.lang) && v.name.includes(config.nameHint)) 
-                           || voices.find(v => v.lang.includes(config.lang));
-        
-        if (matchedVoice) { utterance.voice = matchedVoice; }
-        
-        if (selectedOfficerType === 'indian-female') { utterance.pitch = 1.15; } 
-        else if (selectedOfficerType === 'black-male') { utterance.pitch = 0.82; }
-        else if (selectedOfficerType === 'latino-male') { utterance.pitch = 0.90; }
-
-        utterance.rate = currentSpeed;
-        window.speechSynthesis.speak(utterance);
-    }
-
-    function similarity(s1, s2) {
-        let longer = s1; let shorter = s2;
-        if (s1.length < s2.length) { longer = s2; shorter = s1; }
-        let longerLength = longer.length;
-        if (longerLength === 0) { return 1.0; }
-        return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
-    }
-
-    function editDistance(s1, s2) {
-        s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
-        let costs = new Array();
-        for (let i = 0; i <= s1.length; i++) {
-            let lastValue = i;
-            for (let j = 0; j <= s2.length; j++) {
-                if (i == 0) costs[j] = j;
-                else {
-                    if (j > 0) {
-                        let newValue = costs[j - 1];
-                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
-                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                        costs[j - 1] = lastValue;
-                        lastValue = newValue;
-                    }
-                }
-            }
-            if (i > 0) costs[s2.length] = lastValue;
-        }
-        return costs[s2.length];
-    }
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.continuous = false;
-
-        recognition.onstart = function() {
-            isRecording = true;
-            micBtn.innerText = "🛑 官員正在聽... (Listening)";
-            micBtn.classList.add("recording");
-            userSpeechText.innerText = "請開口回答...";
-            resultBox.style.display = "none";
-        };
-        recognition.onerror = function() { resetMicButton(); };
-        recognition.onend = function() { resetMicButton(); };
-        recognition.onresult = function(event) {
-            const userSpeech = event.results[0][0].transcript.toLowerCase();
-            userSpeechText.innerHTML = `你回答的是：<strong>"${userSpeech}"</strong>`;
-            checkAnswerWithTolerance(userSpeech);
-        };
-    }
-
-    const questionText = document.getElementById("question-text");
-    const micBtn = document.getElementById("mic-btn");
-    const userSpeechText = document.getElementById("user-speech");
-    const resultBox = document.getElementById("result-box");
-    const nextBtn = document.getElementById("next-btn");
-    const progressText = document.getElementById("progress");
-
     function startNewQuizSession() {
-        generateSmartQuiz(); 
+        quizData = [...rawQuizData];
         currentQuestionIndex = 0;
         score = 0;
         loadQuestion();
     }
 
     function loadQuestion() {
-        // 核心修正：先把所有舊畫面元件、下一題按鈕、結果框全部「強制隱藏/重設」，絕不留存殘留物
-        resultBox.style.display = "none"; 
-        nextBtn.style.display = "none";
-        userSpeechText.innerText = ""; 
+        document.getElementById("result-box").style.display = "none"; 
+        document.getElementById("next-btn").style.display = "none";
+        document.getElementById("user-speech").innerText = ""; 
         document.getElementById("similarity-score").innerText = "";
         
-        if (!quizData || quizData.length === 0) return;
-        
         let currentQuestion = quizData[currentQuestionIndex];
-        progressText.innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
-        questionText.innerText = currentQuestion.question;
-        setTimeout(() => { speakQuestion(false); }, 400);
+        document.getElementById("progress").innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
+        document.getElementById("question-text").innerText = currentQuestion.question;
+        setTimeout(() => { speakQuestion(); }, 400);
     }
 
-    function toggleListening() { if (isRecording) { recognition.stop(); } else { recognition.start(); } }
-    function resetMicButton() { isRecording = false; micBtn.innerText = "🎤 按一下開始回答 (Speak Now)"; micBtn.classList.remove("recording"); }
+    function speakQuestion() {
+        if (!quizData || quizData.length === 0) return;
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
+        utterance.lang = officerMeta[selectedOfficerType].lang;
+        utterance.rate = currentSpeed;
+        window.speechSynthesis.speak(utterance);
+    }
 
-    function checkAnswerWithTolerance(speech) {
-        let currentQuestion = quizData[currentQuestionIndex];
-        let speechWords = speech.split(" ");
-        let maxSimilarity = 0;
-        for (let word of speechWords) {
-            for (let keyword of currentQuestion.keywords) {
-                let sim = similarity(word, keyword);
-                if (sim > maxSimilarity) { maxSimilarity = sim; }
-            }
-        }
-        let isCorrect = maxSimilarity >= 0.70;
-        resultBox.style.display = "block";
-        document.getElementById("similarity-score").innerText = `(語音匹配度: ${Math.round(maxSimilarity * 100)}%)`;
-        if (isCorrect) {
-            resultBox.className = "result-box success";
-            resultBox.innerHTML = `⭕ 正確。<br>標準答案：${currentQuestion.answer}`;
-            score++;
-        } else {
-            resultBox.className = "result-box error";
-            resultBox.innerHTML = `❌ 錯誤。<br>標準答案應包含：${currentQuestion.answer}`;
-        }
-        nextBtn.style.display = "inline-block";
+    function toggleListening() {
+        if (isRecording) { recognition.stop(); } else { recognition.start(); }
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.onstart = function() {
+            isRecording = true;
+            document.getElementById("mic-btn").innerText = "🛑 官員正在聽... (Listening)";
+            document.getElementById("mic-btn").classList.add("recording");
+        };
+        recognition.onend = function() {
+            isRecording = false;
+            document.getElementById("mic-btn").innerText = "🎤 按一下開始回答 (Speak Now)";
+            document.getElementById("mic-btn").classList.remove("recording");
+        };
+        recognition.onresult = function(event) {
+            const userSpeech = event.results[0][0].transcript.toLowerCase();
+            document.getElementById("user-speech").innerHTML = `你回答的是：<strong>"${userSpeech}"</strong>`;
+            document.getElementById("result-box").style.display = "block";
+            document.getElementById("result-box").className = "result-box success";
+            document.getElementById("result-box").innerHTML = `已接收語音回答。`;
+            document.getElementById("next-btn").style.display = "inline-block";
+        };
     }
 
     function nextQuestion() {
-        lastRoundFinalQuestionId = quizData[currentQuestionIndex].id;
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
         else {
@@ -396,17 +258,11 @@
         document.getElementById("final-section").style.display = "none";
     }
 
-    // 萬無一失的啟動死鎖機制：進站時除了第一頁，其餘任何殘留物一律永久抹除
     window.onload = function() {
-        autoDetectPresidentialData();
-        
+        // 本地啟動，死鎖強制第一頁
         document.getElementById("setup-section").style.display = "block";
         document.getElementById("quiz-section").style.display = "none";
         document.getElementById("final-section").style.display = "none";
-
-        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => {}; 
-        }
     };
 </script>
 
