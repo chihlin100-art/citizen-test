@@ -13,14 +13,14 @@
         .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; }
         .setup-panel h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; font-size: 18px; text-align: center; }
         
-        /* 精簡通訊地址（5 格） */
+        /* 精簡通訊地址佈局（5 格） */
         .address-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full-width { grid-column: span 2; }
         .form-group label { font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #334155; }
         .form-group input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; background-color: #fff; color: #1e293b; }
         
-        /* 四大面試官卡片 */
+        /* 四大真人面試官卡片 */
         .officer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .officer-card { border: 2px solid #cbd5e1; border-radius: 10px; overflow: hidden; text-align: center; cursor: pointer; transition: all 0.2s; background: white; padding-bottom: 10px; box-sizing: border-box; }
         .officer-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
@@ -249,7 +249,7 @@
     }
 
     function speakQuestion(isUserRequested = false) {
-        if (!quizData || quizData.length === 0) return; // 安全防線
+        if (!quizData || quizData.length === 0) return;
         window.speechSynthesis.cancel();
         let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
         const config = officerMeta[selectedOfficerType];
@@ -390,11 +390,10 @@
         document.getElementById("final-section").style.display = "none";
     }
 
-    // 實測過關的唯一安全載入機制
     window.onload = function() {
         autoDetectPresidentialData();
         
-        // 核心修正：一進網站，絕對、強制只將第一頁的介面亮起，其餘死鎖
+        // 初始狀態絕對死死限制在第一頁
         document.getElementById("setup-section").style.display = "block";
         document.getElementById("quiz-section").style.display = "none";
         document.getElementById("final-section").style.display = "none";
