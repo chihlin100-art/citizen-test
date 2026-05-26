@@ -9,18 +9,18 @@
         .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 680px; max-width: 100%; text-align: center; }
         h2 { font-size: 22px; color: #1e3a8a; margin-bottom: 25px; line-height: 1.4; }
         
-        /* 初始設定區：確保一進入網站就優先呈現 */
-        .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; display: block; }
+        /* 初始設定區：確保優先呈現 */
+        .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; }
         .setup-panel h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; font-size: 18px; text-align: center; }
         
-        /* 精簡通訊地址佈局（僅保留 5 格） */
+        /* 精簡通訊地址佈局（5 格） */
         .address-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group.full-width { grid-column: span 2; }
         .form-group label { font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #334155; }
         .form-group input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; background-color: #fff; color: #1e293b; }
         
-        /* 精美四大真人考官卡片選單 */
+        /* 四大真人考官卡片選單 */
         .officer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .officer-card { border: 2px solid #cbd5e1; border-radius: 10px; overflow: hidden; text-align: center; cursor: pointer; transition: all 0.2s; background: white; padding-bottom: 10px; box-sizing: border-box; }
         .officer-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
@@ -55,34 +55,35 @@
 <body>
 
 <div class="quiz-container">
-    <div id="setup-section" class="setup-panel">
+    
+    <div id="setup-section" class="setup-panel" style="display: block;">
         <h3>選擇你的指定面試官 (Select Your Interviewer)</h3>
         
         <div class="officer-grid">
             <div class="officer-card selected" onclick="selectOfficer('white-female', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200" class="officer-img" alt="Officer Emily">
+                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer1.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150'" alt="Officer Emily">
                 </div>
                 <div class="officer-name">Officer Emily</div>
                 <div class="officer-accent">白人女性<br>(美式標準音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('black-male', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" class="officer-img" alt="Officer Marcus">
+                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer2.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'" alt="Officer Marcus">
                 </div>
                 <div class="officer-name">Officer Marcus</div>
-                <div class="officer-accent">黑人男性<br>(美東渾厚音)</div>
+                <div class="officer-accent">黑人男性<br>(Cary現場官員音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('indian-female', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=200" class="officer-img" alt="Officer Sofia">
+                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer3.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150'" alt="Officer Sofia">
                 </div>
                 <div class="officer-name">Officer Sofia</div>
-                <div class="officer-accent">印度裔女性<br>(新移民捲舌)</div>
+                <div class="officer-accent">印度裔女性<br>(Apex新移民音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('latino-male', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200" class="officer-img" alt="Officer Diego">
+                    <img src="https://raw.githubusercontent.com/googleusercontent/immersive_entry_chip/main/officer4.png" class="officer-img" onerror="this.src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'" alt="Officer Diego">
                 </div>
                 <div class="officer-name">Officer Diego</div>
                 <div class="officer-accent">南美洲男性<br>(西語平舌音)</div>
@@ -164,7 +165,6 @@
       { id: 9, question: "What are two rights in the Declaration of Independence?", keywords: ["life", "liberty", "pursuit of happiness"], answer: "Life / Liberty / Pursuit of happiness" },
       { id: 10, question: "What is freedom of religion?", keywords: ["any religion", "not practice"], answer: "You can practice any religion, or not practice a religion." },
       
-      // 自動時空動態判定題
       { id: 46, isDynamic: "party", question: "What is the political party of the President now?", keywords: [], answer: "" },
       { id: 47, isDynamic: "president", question: "What is the name of the President of the United States now?", keywords: [], answer: "" },
       { id: 48, isDynamic: "vp", question: "What is the name of the Vice President of the United States now?", keywords: [], answer: "" },
@@ -199,7 +199,6 @@
         element.classList.add('selected');
     }
 
-    // 2026 最新時空背景校準
     function autoDetectPresidentialData() {
         const now = new Date();
         const year = now.getFullYear();
@@ -214,6 +213,7 @@
         }
     }
 
+    // 關鍵修正：點擊按鈕後才執行切換，且隱藏第一頁，顯示第二頁
     function confirmSetupAndStart() {
         rawQuizData.forEach(q => {
             if (q.isDynamic === "president") { q.answer = dynamicPresident; q.keywords = dynamicPresident.toLowerCase().split(" "); }
@@ -221,10 +221,11 @@
             else if (q.isDynamic === "party") { q.answer = dynamicParty; q.keywords = dynamicParty.toLowerCase().split(" "); }
         });
 
-        // 點擊後，正確切換顯示狀態：隱藏第一頁，顯示第二頁測驗畫面
         document.getElementById("current-officer-display").innerText = `當前執考官：${officerMeta[selectedOfficerType].name}`;
         document.getElementById("setup-section").style.display = "none";
         document.getElementById("quiz-section").style.display = "block";
+        
+        // 切換完成後才正式加載題目
         startNewQuizSession();
     }
 
@@ -391,8 +392,15 @@
         document.getElementById("final-section").style.display = "none";
     }
 
+    // 核心安全防禦：網頁載入時強制清空並設定正確的顯隱狀態，防堵任何程式碼越位
     window.onload = function() {
         autoDetectPresidentialData();
+        
+        // 強制初始畫面設定
+        document.getElementById("setup-section").style.display = "block";
+        document.getElementById("quiz-section").style.display = "none";
+        document.getElementById("final-section").style.display = "none";
+
         if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
             speechSynthesis.onvoiceschanged = () => {}; 
         }
