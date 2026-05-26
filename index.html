@@ -5,9 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>美國公民「全真考場模擬」口試系統</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 550px; max-width: 90%; text-align: center; }
+        body { font-family: Arial, sans-serif; background-color: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .quiz-container { background-color: #ffffff; color: #333; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); padding: 40px; width: 680px; max-width: 100%; text-align: center; }
         h2 { font-size: 22px; color: #1e3a8a; margin-bottom: 25px; line-height: 1.4; }
+        
+        .setup-panel { background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; border-radius: 10px; text-align: left; margin-bottom: 20px; color: #1e293b; }
+        .setup-panel h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; font-size: 18px; }
+        
+        /* 地址區雙欄佈局 */
+        .address-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { font-weight: bold; margin-bottom: 6px; font-size: 14px; color: #334155; }
+        .form-group input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; }
+        
+        /* 真人面試官選擇卡片樣式 */
+        .officer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+        .officer-card { border: 2px solid #cbd5e1; border-radius: 10px; overflow: hidden; text-align: center; cursor: pointer; transition: all 0.2s; background: white; padding-bottom: 10px; }
+        .officer-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .officer-card.selected { border-color: #22c55e; background-color: #f0fdf4; box-shadow: 0 0 12px rgba(34,197,94,0.4); }
+        .officer-img { width: 100%; height: 135px; object-fit: cover; border-bottom: 1px solid #e2e8f0; }
+        .officer-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 8px; }
+        .officer-accent { font-size: 11px; color: #64748b; margin-top: 2px; padding: 0 4px; }
+
         .control-panel { background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 14px; color: #475569; }
         .control-panel label { font-weight: bold; display: block; margin-bottom: 5px; }
         .speed-slider { width: 100%; margin-bottom: 5px; }
@@ -26,13 +46,67 @@
 <body>
 
 <div class="quiz-container">
-    <div id="quiz-section">
+    <div id="setup-section" class="setup-panel">
+        <h3>考前環境與基本資料設定</h3>
+        
+        <label style="font-weight: bold; display: block; margin-bottom: 10px; font-size: 14px; color: #334155;">選擇你的指定面試官 (Select Your Interviewer)：</label>
+        <div class="officer-grid">
+            <div class="officer-card selected" onclick="selectOfficer('white-female', this)">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400" class="officer-img" alt="Officer Emily">
+                <div class="officer-name">Officer Emily</div>
+                <div class="officer-accent">白人女性 (美式標準音)</div>
+            </div>
+            <div class="officer-card" onclick="selectOfficer('black-male', this)">
+                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400" class="officer-img" alt="Officer Marcus">
+                <div class="officer-name">Officer Marcus</div>
+                <div class="officer-accent">黑人男性 (美東渾厚音)</div>
+            </div>
+            <div class="officer-card" onclick="selectOfficer('indian-female', this)">
+                <img src="https://images.unsplash.com/photo-1580894732444-8fecef2600da?auto=format&fit=crop&q=80&w=400" class="officer-img" alt="Officer Sofia">
+                <div class="officer-name">Officer Sofia</div>
+                <div class="officer-accent">印度裔女性 (新移民捲舌)</div>
+            </div>
+            <div class="officer-card" onclick="selectOfficer('latino-male', this)">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400" class="officer-img" alt="Officer Diego">
+                <div class="officer-name">Officer Diego</div>
+                <div class="officer-accent">南美洲男性 (西語平舌音)</div>
+            </div>
+        </div>
+
+        <label style="font-weight: bold; display: block; margin-bottom: 10px; font-size: 14px; color: #0f172a; border-top: 1px solid #cbd5e1; padding-top: 15px;">應試者通訊資料 (Applicant Information)：</label>
+        <div class="address-grid">
+            <div class="form-group full-width">
+                <label>姓名 (Full Name)：</label>
+                <input type="text" id="setup-name" value="Jeffrey">
+            </div>
+            <div class="form-group full-width">
+                <label>地址 (Street Address)：</label>
+                <input type="text" id="setup-address" value="120 Bellevue Ave">
+            </div>
+            <div class="form-group">
+                <label>城市 (City)：</label>
+                <input type="text" id="setup-city" value="Cary">
+            </div>
+            <div class="form-group">
+                <label>州 (State)：</label>
+                <input type="text" id="setup-state" value="North Carolina">
+            </div>
+            <div class="form-group full-width">
+                <label>ZIP Code：</label>
+                <input type="text" id="setup-zip" value="27511">
+            </div>
+        </div>
+        
+        <button class="start-exam-btn" onclick="confirmSetupAndStart()">確認資料，開始模擬面試 🚀</button>
+    </div>
+
+    <div id="quiz-section" style="display: none;">
         <div id="progress" style="font-size: 14px; color: #64748b; text-align: left; margin-bottom: 10px;"></div>
         
         <div class="control-panel">
-            <label for="speed">官員語速調整 (Officer Speech Speed): <span id="speed-val">0.85</span>x</label>
+            <div id="current-officer-display" style="font-weight: bold; color: #1e3a8a; margin-bottom: 8px; font-size: 15px;"></div>
+            <label for="speed">官員語速調整 (Speech Speed): <span id="speed-val">0.85</span>x</label>
             <input type="range" id="speed" class="speed-slider" min="0.5" max="1.2" step="0.05" value="0.85" oninput="updateSpeed(this.value)">
-            <div style="font-size: 11px; color: #94a3b8;">(提示：0.7-0.8 為體貼慢速，1.0 為一般美國人日常正常語速)</div>
         </div>
 
         <button class="repeat-btn" onclick="speakQuestion(true)">
@@ -61,7 +135,7 @@
 </div>
 
 <script>
-    // 這裡幫你注入了全套完整的公民測驗題庫結構（展示核心題池，系統會自動在重開時隨機換題）
+    // 核心題庫：整合基本憲法題與自動判定的總統政治題
     const rawQuizData = [
       { id: 1, question: "What is the supreme law of the land?", keywords: ["constitution"], answer: "The Constitution" },
       { id: 2, question: "What does the Constitution do?", keywords: ["sets up", "defines", "protects"], answer: "sets up the government / defines the government / protects basic rights of Americans" },
@@ -73,27 +147,14 @@
       { id: 8, question: "What did the Declaration of Independence do?", keywords: ["announced", "declared", "said"], answer: "announced our independence (from Great Britain) / declared our independence / said that the United States is free" },
       { id: 9, question: "What are two rights in the Declaration of Independence?", keywords: ["life", "liberty", "pursuit of happiness"], answer: "Life / Liberty / Pursuit of happiness" },
       { id: 10, question: "What is freedom of religion?", keywords: ["any religion", "not practice"], answer: "You can practice any religion, or not practice a religion." },
+      
+      // 時間自動變動題 (中央執政團隊數據)
+      { id: 46, isDynamic: "party", question: "What is the political party of the President now?", keywords: [], answer: "" },
+      { id: 47, isDynamic: "president", question: "What is the name of the President of the United States now?", keywords: [], answer: "" },
+      { id: 48, isDynamic: "vp", question: "What is the name of the Vice President of the United States now?", keywords: [], answer: "" },
+
       { id: 11, question: "What is the economic system in the United States?", keywords: ["capitalist", "market"], answer: "capitalist economy / market economy" },
-      { id: 12, question: "What is the rule of law?", keywords: ["everyone must follow", "no one is above"], answer: "Everyone must follow the law / Leaders must obey the law / Government must obey the law / No one is above the law" },
-      { id: 13, question: "Name one branch or part of the government.", keywords: ["congress", "legislative", "president", "executive", "courts", "judicial"], answer: "Congress / Legislative / President / Executive / The courts / Judicial" },
-      { id: 14, question: "What stops one branch of government from becoming too powerful?", keywords: ["checks and balances", "separation of powers"], answer: "checks and balances / separation of powers" },
-      { id: 15, question: "Who is in charge of the executive branch?", keywords: ["president"], answer: "the President" },
-      { id: 16, question: "Who makes federal laws?", keywords: ["congress", "senate and house", "legislature"], answer: "Congress / Senate and House (of Representatives) / (U.S. or national) legislature" },
-      { id: 17, question: "What are the two parts of the U.S. Congress?", keywords: ["senate", "house"], answer: "the Senate and House (of Representatives)" },
-      { id: 18, question: "How many U.S. Senators are there?", keywords: ["100", "one hundred"], answer: "100" },
-      { id: 19, question: "We elect a U.S. Senator for how many years?", keywords: ["6", "six"], answer: "6" },
-      { id: 20, question: "The U.S. House of Representatives has how many voting members?", keywords: ["435", "four hundred thirty-five"], answer: "435" },
-      { id: 21, question: "We elect a U.S. Representative for how many years?", keywords: ["2", "two"], answer: "2" },
-      { id: 22, question: "Who does a U.S. Senator represent?", keywords: ["all people of the state"], answer: "all people of the state" },
-      { id: 23, question: "Why do some states have more Representatives than other states?", keywords: ["population", "more people"], answer: "(because of) the state's population / (because) they have more people / (because) some states have more people" },
-      { id: 24, question: "We elect a President for how many years?", keywords: ["4", "four"], answer: "4" },
-      { id: 25, question: "In what month do we vote for President?", keywords: ["november"], answer: "November" },
-      { id: 26, question: "What is the name of the President of the United States now?", keywords: ["biden", "joe biden"], answer: "Joe Biden" },
-      { id: 27, question: "What is the name of the Vice President of the United States now?", keywords: ["harris", "kamala harris"], answer: "Kamala Harris" },
-      { id: 28, question: "If the President can no longer serve, who becomes President?", keywords: ["vice president"], answer: "the Vice President" },
-      { id: 29, question: "If both the President and the Vice President can no longer serve, who becomes President?", keywords: ["speaker of the house"], answer: "the Speaker of the House" },
-      { id: 30, question: "Name one reason the colonists came to America.", keywords: ["freedom", "liberty", "religion", "opportunity"], answer: "Freedom / Political liberty / Religious freedom" }
-      // 此處可依此結構自由擴充至 128 題
+      { id: 12, question: "What is the rule of law?", keywords: ["everyone must follow", "no one is above"], answer: "Everyone must follow the law / Leaders must obey the law / Government must obey the law / No one is above the law" }
     ];
 
     let quizData = [];
@@ -102,7 +163,56 @@
     let recognition;
     let isRecording = false;
     let currentSpeed = 0.85;
-    let lastRoundFinalQuestionId = null; // 用來記憶跨局最後一題的變數
+    let lastRoundFinalQuestionId = null;
+
+    let selectedOfficerType = 'white-female';
+    const officerMeta = {
+        'white-female': { name: "Officer Emily (白人女性)", lang: "en-US", nameHint: "Zira" },
+        'black-male': { name: "Officer Marcus (黑人男性)", lang: "en-US", nameHint: "David" },
+        'indian-female': { name: "Officer Sofia (印度裔女性)", lang: "en-IN", nameHint: "Heera" },
+        'latino-male': { name: "Officer Diego (南美洲男性)", lang: "en-ZA", nameHint: "Sabina" }
+    };
+
+    // 背景靜態與動態變量定義
+    let dynamicPresident = "Donald Trump";
+    let dynamicVP = "JD Vance";
+    let dynamicParty = "Republican Party";
+
+    function selectOfficer(type, element) {
+        selectedOfficerType = type;
+        document.querySelectorAll('.officer-card').forEach(card => card.classList.remove('selected'));
+        element.classList.add('selected');
+    }
+
+    // 後台全自動時間沙盒校準
+    function autoDetectPresidentialData() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+
+        let isTrumpEra = (year > 2025) || (year === 2025 && (month > 1 || (month === 1 && day >= 20)));
+
+        if (isTrumpEra) {
+            dynamicPresident = "Donald Trump"; dynamicVP = "JD Vance"; dynamicParty = "Republican Party";
+        } else {
+            dynamicPresident = "Joe Biden"; dynamicVP = "Kamala Harris"; dynamicParty = "Democratic Party";
+        }
+    }
+
+    function confirmSetupAndStart() {
+        // 後台自動對齊背景語音關鍵字
+        rawQuizData.forEach(q => {
+            if (q.isDynamic === "president") { q.answer = dynamicPresident; q.keywords = dynamicPresident.toLowerCase().split(" "); }
+            else if (q.isDynamic === "vp") { q.answer = dynamicVP; q.keywords = dynamicVP.toLowerCase().split(" "); }
+            else if (q.isDynamic === "party") { q.answer = dynamicParty; q.keywords = dynamicParty.toLowerCase().split(" "); }
+        });
+
+        document.getElementById("current-officer-display").innerText = `當前面試官：${officerMeta[selectedOfficerType].name}`;
+        document.getElementById("setup-section").style.display = "none";
+        document.getElementById("quiz-section").style.display = "block";
+        startNewQuizSession();
+    }
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -115,19 +225,36 @@
     function generateSmartQuiz() {
         let pool = [...rawQuizData];
         shuffleArray(pool);
-
-        // 核心機密：如果重開後隨機抽的第一題與上一局的最後一題相同，則強制將其與倒數第一題對調，徹底消除重合
         if (lastRoundFinalQuestionId !== null && pool[0].id === lastRoundFinalQuestionId) {
             [pool[0], pool[pool.length - 1]] = [pool[pool.length - 1], pool[0]];
         }
-
-        // 每次考驗隨機抽出 6 題（現場移民官也是抽問達 10 題，答對 6 題即過關）
         quizData = pool.slice(0, 6);
     }
 
     function updateSpeed(val) {
         currentSpeed = parseFloat(val);
         document.getElementById("speed-val").innerText = val;
+    }
+
+    function speakQuestion(isUserRequested = false) {
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
+        
+        const config = officerMeta[selectedOfficerType];
+        utterance.lang = config.lang;
+        
+        let voices = window.speechSynthesis.getVoices();
+        let matchedVoice = voices.find(v => v.lang.includes(config.lang) && v.name.includes(config.nameHint)) 
+                           || voices.find(v => v.lang.includes(config.lang));
+        
+        if (matchedVoice) { utterance.voice = matchedVoice; }
+        
+        if (selectedOfficerType === 'indian-female') { utterance.pitch = 1.15; } 
+        else if (selectedOfficerType === 'black-male') { utterance.pitch = 0.82; }
+        else if (selectedOfficerType === 'latino-male') { utterance.pitch = 0.90; }
+
+        utterance.rate = currentSpeed;
+        window.speechSynthesis.speak(utterance);
     }
 
     function similarity(s1, s2) {
@@ -173,10 +300,8 @@
             userSpeechText.innerText = "請開口回答...";
             resultBox.style.display = "none";
         };
-
         recognition.onerror = function() { resetMicButton(); };
         recognition.onend = function() { resetMicButton(); };
-
         recognition.onresult = function(event) {
             const userSpeech = event.results[0][0].transcript.toLowerCase();
             userSpeechText.innerHTML = `你回答的是：<strong>"${userSpeech}"</strong>`;
@@ -203,26 +328,10 @@
     function loadQuestion() {
         resultBox.style.display = "none"; nextBtn.style.display = "none";
         userSpeechText.innerText = ""; document.getElementById("similarity-score").innerText = "";
-        
         let currentQuestion = quizData[currentQuestionIndex];
         progressText.innerText = `題目進度: ${currentQuestionIndex + 1} / ${quizData.length}`;
         questionText.innerText = currentQuestion.question;
-        
-        setTimeout(() => {
-            speakQuestion(false);
-        }, 300);
-    }
-
-    function speakQuestion(isUserRequested = false) {
-        window.speechSynthesis.cancel();
-        let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
-        utterance.lang = 'en-US';
-        utterance.rate = currentSpeed;
-        window.speechSynthesis.speak(utterance);
-
-        if (isUserRequested) {
-            userSpeechText.innerHTML = "<span style='color: #2563eb;'>💡 實戰提醒：在現場聽不清時，隨時可以禮貌地對移民官說：'Sorry, could you repeat the question, please?'</span>";
-        }
+        setTimeout(() => { speakQuestion(false); }, 400);
     }
 
     function toggleListening() { if (isRecording) { recognition.stop(); } else { recognition.start(); } }
@@ -232,33 +341,28 @@
         let currentQuestion = quizData[currentQuestionIndex];
         let speechWords = speech.split(" ");
         let maxSimilarity = 0;
-
         for (let word of speechWords) {
             for (let keyword of currentQuestion.keywords) {
                 let sim = similarity(word, keyword);
                 if (sim > maxSimilarity) { maxSimilarity = sim; }
             }
         }
-
         let isCorrect = maxSimilarity >= 0.70;
         resultBox.style.display = "block";
         document.getElementById("similarity-score").innerText = `(語音匹配度: ${Math.round(maxSimilarity * 100)}%)`;
-
         if (isCorrect) {
             resultBox.className = "result-box success";
-            resultBox.innerHTML = `⭕ 官員聽懂了！正確。<br>標準答案：${currentQuestion.answer}`;
+            resultBox.innerHTML = `⭕ 正確。<br>標準答案：${currentQuestion.answer}`;
             score++;
         } else {
             resultBox.className = "result-box error";
-            resultBox.innerHTML = `❌ 官員露出困惑表情。你可以再聽一次或查看答案。<br>標準答案應包含：${currentQuestion.answer}`;
+            resultBox.innerHTML = `❌ 錯誤。<br>標準答案應包含：${currentQuestion.answer}`;
         }
         nextBtn.style.display = "inline-block";
     }
 
     function nextQuestion() {
-        // 在切換至下一題前，確實將當前題目儲存至跨局變數中
         lastRoundFinalQuestionId = quizData[currentQuestionIndex].id;
-        
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) { loadQuestion(); } 
         else {
@@ -269,12 +373,13 @@
         }
     }
 
-    function restartQuiz() {
-        startNewQuizSession();
-    }
+    function restartQuiz() { startNewQuizSession(); }
 
     window.onload = function() {
-        startNewQuizSession();
+        autoDetectPresidentialData();
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {}; 
+        }
     };
 </script>
 
