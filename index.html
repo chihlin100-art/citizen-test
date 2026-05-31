@@ -40,7 +40,6 @@
         
         .result-box { padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 16px; font-weight: bold; display: none; text-align: left; line-height: 1.5; }
         .success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
         
         .action-btn { background-color: #1e293b; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 15px; display: none; width: 100%; }
         .start-exam-btn { background-color: #2563eb; color: white; border: none; padding: 14px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; box-shadow: 0 4px 6px rgba(37,99,235,0.2); }
@@ -65,21 +64,21 @@
             </div>
             <div class="officer-card" onclick="selectOfficer('black-male', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Marcus">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Marcus">
                 </div>
                 <div class="officer-name">Officer Marcus</div>
                 <div class="officer-accent">黑人男性<br>(Cary現場官員音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('indian-female', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Sofia">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Sofia">
                 </div>
                 <div class="officer-name">Officer Sofia</div>
                 <div class="officer-accent">印度裔女性<br>(Apex新移民音)</div>
             </div>
             <div class="officer-card" onclick="selectOfficer('latino-male', this)">
                 <div class="avatar-container">
-                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Diego">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" class="officer-img" alt="Officer Diego">
                 </div>
                 <div class="officer-name">Officer Diego</div>
                 <div class="officer-accent">南美洲男性<br>(西語平舌音)</div>
@@ -165,11 +164,13 @@
     let currentSpeed = 0.85;
 
     let selectedOfficerType = 'white-female';
+    
+    // 【核心修正】加入精準的語音包名字篩選關鍵字，強迫系統去抓特定的男聲/女聲
     const officerMeta = {
-        'white-female': { name: "Officer Emily (白人女性)", lang: "en-US", nameHint: "Zira" },
-        'black-male': { name: "Officer Marcus (黑人男性)", lang: "en-US", nameHint: "David" },
-        'indian-female': { name: "Officer Sofia (印度裔女性)", lang: "en-IN", nameHint: "Heera" },
-        'latino-male': { name: "Officer Diego (南美洲男性)", lang: "en-ZA", nameHint: "Sabina" }
+        'white-female': { name: "Officer Emily (白人女性)", lang: "en-US", gender: "female", preferredVoice: ["zira", "en-us-female"] },
+        'black-male': { name: "Officer Marcus (黑人男性)", lang: "en-US", gender: "male", preferredVoice: ["david", "en-us-male", "google us english male"] },
+        'indian-female': { name: "Officer Sofia (印度裔女性)", lang: "en-IN", gender: "female", preferredVoice: ["heera", "p प्रिया", "en-in-female"] },
+        'latino-male': { name: "Officer Diego (南美洲男性)", lang: "en-GB", gender: "male", preferredVoice: ["oliver", "en-gb-male", "google uk english male", "male"] } 
     };
 
     function selectOfficer(type, element) {
@@ -204,13 +205,44 @@
         setTimeout(() => { speakQuestion(); }, 400);
     }
 
+    // 【核心修正】重寫發音引擎，加入嚴格的性別與語音包名字過濾機制，絕不允許男女聲混淆！
     function speakQuestion() {
         if (!quizData || quizData.length === 0) return;
         window.speechSynthesis.cancel();
+        
         let utterance = new SpeechSynthesisUtterance(quizData[currentQuestionIndex].question);
-        utterance.lang = officerMeta[selectedOfficerType].lang;
+        let meta = officerMeta[selectedOfficerType];
+        utterance.lang = meta.lang;
         utterance.rate = currentSpeed;
+        
+        // 獲取當前系統所有可用的語音包
+        let voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            let matchedVoice = null;
+            
+            // 優先尋找名稱中包含我們首選男性/女性關鍵字的語音包
+            for (let pref of meta.preferredVoice) {
+                matchedVoice = voices.find(v => v.name.toLowerCase().includes(pref) && v.lang.startsWith(meta.lang.split('-')[0]));
+                if (matchedVoice) break;
+            }
+            
+            // 如果沒匹配到，則降級精準尋找該語系內符合 Male/Female 邏輯的語音
+            if (!matchedVoice) {
+                matchedVoice = voices.find(v => v.lang.startsWith(meta.lang.split('-')[0]) && v.name.toLowerCase().includes(meta.gender));
+            }
+            
+            // 如果找到了正確的性別語音包，強制綁定它
+            if (matchedVoice) {
+                utterance.voice = matchedVoice;
+            }
+        }
+        
         window.speechSynthesis.speak(utterance);
+    }
+
+    function updateSpeed(val) {
+        currentSpeed = parseFloat(val);
+        document.getElementById("speed-val").innerText = val;
     }
 
     function toggleListening() {
@@ -258,8 +290,12 @@
         document.getElementById("final-section").style.display = "none";
     }
 
+    // 確保語音列表異步載入正常
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+    }
+
     window.onload = function() {
-        // 本地啟動，死鎖強制第一頁
         document.getElementById("setup-section").style.display = "block";
         document.getElementById("quiz-section").style.display = "none";
         document.getElementById("final-section").style.display = "none";
